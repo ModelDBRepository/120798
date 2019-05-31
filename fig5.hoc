@@ -1,0 +1,117 @@
+// fig5.hoc
+
+objref soma_v_vec, dend_v_vec, spine_v_vec,t_vec
+
+soma_v_vec = new Vector()
+dend_v_vec = new Vector()
+spine_v_vec = new Vector()
+t_vec = new Vector()
+
+soma_v_vec.record(&dend1[13].v(0.5))
+dend_v_vec.record(&dend1[881].v(0.5))
+spine_v_vec.record(&spine_head[0].v(0.5))
+t_vec.record(&t)
+
+
+proc fig5b() {
+/* Documention on EPSP stimulus setup:
+
+One of the key observations in the paper was that a spine neck resistance of
+approximately 500 MOhm neck was required to reproduce our experimental
+findings (Fig.5b). The spine neck resistance in this model is 514 MOhm (diameter
+0.051 um), and reproduces both Fig.5B in the paper and the experimental data
+in Fig.5A.
+
+It uses a 500 pS "AMPA" conductance at spine_head[0]. Activation of this
+input alone gives an EPSP in the dendritic shaft, at dend1[881](0.5), of
+~1.5 mV. This is similar to that observed experimentally for quantal,
+putative single spine, events in these dendrites, but much smaller than the
+dendritic EPSP we observed experimentally during synaptic stimulation. We
+concluded from this that our synaptic stimulation activating multiple
+surrounding inputs which sum together to increase the amplitude of the
+recorded dendritic EPSP. Consistent with this idea the EPSP recorded at the
+soma in these experiments was large (~ 5mV), and much larger than one would
+predict if only a single spine was activated.
+
+As stated in the Methods to mimic this "background" input "we placed
+additional synaptic inputs onto the same dendrite as that with the
+reconstructed spine. The number of additional inputs on the same dendrite
+was adjusted to match the amplitude of the "background" depolarization
+observed in experimental responses in spines and the adjacent dendrite.
+
+What is not stated in the Methods is actually how we did this. This was
+done by adding a synapse halfway along compartment
+dend1[879], a slightly more proximal dendritic compartment on the same
+dendritic branch as the spine. A synapse with conductance of 10.5 nS seems
+to do the trick.
+*/
+  tstop = 30
+  dt = 0.01
+  cvode.active(0) // turn off variable step method
+  step_per_ms = 100
+  IClamp[0].amp=0   // make sure the hyper-pol. current is off
+  syn[3].gmax = 0.0105  // 10.5 nS EPSP producing conductance
+  spine_neck[0] diam = 0.051 // Rneck = 514 M Ohm
+  syn[0].onset= 5
+  syn[0].gmax = 0.0005 // on spine_head[0]
+  syn[1].gmax = 0.0   // on spine_head[1]
+  syn[2].gmax = 0.0   // on spine_head[2]
+  {init() run()}
+  {spine_v_vec.resize(0) dend_v_vec.resize(0)}
+  g.exec_menu("View = plot")  // fig 5b shares same graph with fig. 2c
+}
+
+objref fig5c_g, fig5d_g
+objref soma_v_vecs[7], t_vecs[7], EPSP_size_vec, neck_resistance_vec
+EPSP_size_vec = new Vector()
+neck_resistance_vec = new Vector()
+
+proc fig5cd() {
+  tstop = 80
+  dt= 0.05
+  CVode[0].active(0) // switch to fixed time step to match paper result
+  EPSP_size_vec.resize(0)  // set to empty in case run multiple times
+  neck_resistance_vec.resize(0)
+  print "Calculating fig5c, 5d"
+  spine_neck[0].diam(0.5)=diam_of_Rn(514e6)  // value from paper
+  print "Calculating fig 5c with spine neck diam ",spine_neck[0].diam(0.5)
+  IClamp[0].amp=0
+  syn[0].onset = 20 
+  syn[0].gmax=0.0005
+  syn[1].gmax=0
+  syn[2].gmax=0
+  syn[3].gmax = 0.0
+  fig5c_g = new Graph()
+  fig5d_g = new Graph()
+  soma_v_vec.record(&dend1[13].v(0.5))
+  num_points = 5
+  for (iter=0; iter<num_points+1; iter+=1) {
+    t_vecs[iter] = new Vector()
+    t_vecs[iter].record(&t)
+    epsilon = 1e-4  // helps not crash when Ra  0
+    spine_neck[0].Ra = 105 *( (iter+epsilon)/num_points )
+    print "iter: ",iter,"/",num_points," neck axial resistance = ", \
+      spine_neck[0].Ra," total neck resistance = ",         \
+      Rn(spine_neck[0].diam(0.5))*(iter+epsilon)/(num_points*1e6)," MOhms"
+    {init() run()}
+    EPSP_size_vec.append(soma_v_vec.max()-v_init)
+    neck_resistance_vec.append(Rn(spine_neck[0].diam(0.5))*(iter+epsilon)/(num_points*1e6))
+    soma_v_vecs[iter]=soma_v_vec.c
+    soma_v_vec.resize(0)
+  }
+  fig5c_g.exec_menu("Keep Lines")
+  for iter=0,num_points {
+//    soma_v_vecs[iter].line(fig5c_g,t_vecs[iter],1,iter+1)
+    soma_v_vecs[iter].line(fig5c_g,t_vecs[iter])
+  }
+  fig5c_g.exec_menu("View = plot")
+  fig5c_g.label(0.47,0.9,"Fig. 5c")
+  CVode[0].active(1) // turn on variable time step for other figures
+  normalize=EPSP_size_vec.x[0]
+  EPSP_size_vec.div(normalize).mul(100)  // change to percentage of first
+  EPSP_size_vec.line(fig5d_g, neck_resistance_vec)
+  EPSP_size_vec.mark(fig5d_g, neck_resistance_vec,"o")
+  fig5d_g.size(0,500,80,110)
+  fig5d_g.label(0.47,0.9,"Fig. 5d")
+}
+

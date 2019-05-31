@@ -1,0 +1,43 @@
+// program to get geometry and initialise properties of Ri18//
+
+load_file("nrngui.hoc")
+
+xopen("Ri18geometry.hoc")
+xopen("Ri18init_passive.hoc")
+
+access dend1[14]    /* middle of the soma */
+
+t=0
+tstop=30
+steps_per_ms=20
+dt=0.05
+
+
+// xopen("Fig.5B.ses") replaced with code in fig5.hoc
+
+print "Ri18 active model successfully built\n"
+
+// additional scripts from ModelDB Admin.
+xopen("insert_synapses.hoc")  // add g_syn EPSP point processes
+dend1[13] distance() // set origin at middle of soma
+print "distance from spine synapses to soma:"
+forsec "neck" print secname(),", ",distance(0.5)
+
+xopen("soma_spine_v_graph.ses")
+xopen("iclamp_supfig2.ses")
+xopen("run_cntrl.ses")
+
+// turn the spine off for now
+for i=0,2 {
+  syn[i].gmax=0 // nominally 0.0005
+}
+load_file("suppl_fig2c.hoc")
+load_file("fig5.hoc") // contains fig5b(), fig5c()
+
+xpanel("Palmer and Stuart, 2009")
+  xlabel("Click below to run the model to recreate:")
+  xbutton("Fig. 5B","fig5b()")
+  xbutton("Fig. 5C, D","fig5cd()")
+  xbutton("Suppl. Fig. 2 c","suppl_fig2c()")
+xpanel()
+

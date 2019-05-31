@@ -1,0 +1,109 @@
+// --------------------------------------------------------------
+//  Initialise user-defined membrane parameters 
+// --------------------------------------------------------------
+
+celsius=37		// nominal temperature of simulation
+Ri=105    		// internal resistivity in ohm-cm 
+Cm=1      		// specific membrane capacitance in uF/cm^2
+Rm=17000      	// specific membrane resistivity in ohm/cm^2 
+v_init=-75	     	// resting membrane potential
+spinescale=2.0 	// factor used to membrane area to account for spines
+
+
+// --------------------------------------------------------------------
+// Add spines to dend1[881], dend1[876] and dend1[905]
+// (79, 40 um and 140 um from the soma, respectively)
+// --------------------------------------------------------------------	
+
+
+access dend1[876]    /* dendritic segment with spine */
+nseg=20
+
+access dend1[881]    /* dendritic segment with spine */
+nseg=20
+
+access dend1[905]    /* dendritic segment with spine */
+nseg=20
+
+
+create spine_head[3], spine_neck[3]
+
+dend1[881] connect spine_neck[0](0), 0.5
+spine_neck connect spine_head[0](0), 1
+spine_neck[0] {nseg=1 L=1 diam=0.051}		// spine neck resistance ~500 MOhm
+spine_head[0] {nseg=1 L=1 diam=1}
+
+dend1[876] connect spine_neck[1](0), 0.5
+spine_neck[1] connect spine_head[1](0), 1
+spine_neck[1] {nseg=1 L=1 diam=0.1156}		// spine neck resistance ~100 MOhm 
+spine_head[1] {nseg=1 L=1 diam=1}
+
+dend1[905] connect spine_neck[2](0), 0.5
+spine_neck[2] connect spine_head[2](0), 1
+spine_neck[2] {nseg=1 L=1 diam=0.1156}		// spine neck resistance ~100 MOhm 
+spine_head[2] {nseg=1 L=1 diam=1}
+
+
+
+
+// ----------------------------------------------------------------------------
+// initialize passive properties and add virtual spines by scaling Rm and Cm
+//-----------------------------------------------------------------------------
+
+
+forall {insert pas g_pas=1/(Rm/spinescale) cm=Cm*spinescale Ra=Ri e_pas=v_init}
+
+
+// -----------------------------------------------------------------------
+// 	correction for spineless areas: soma, 1st 100 um of apical dendrite,
+// 	and 1st 20 um of each basal dendrite
+//------------------------------------------------------------------------
+	 
+
+	for i=20,24 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=35,39 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=63,64 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=769,770 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+ 	for i=800,802 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=915,916 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=949,951 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=998,999 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=1047,1050 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=1051,1052 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+	 for i=1059,1061 {
+		dend1[i]  {g_pas=1/Rm cm = Cm}
+	 }
+
+
+
+// -----------------------------------------------------------------------
+// 	correction for spine properties 
+//------------------------------------------------------------------------
+
+
+	for i=0,2 {
+		spine_head[i] {g_pas=1/Rm cm = Cm}
+		spine_neck[i] {g_pas=1/Rm cm = Cm}
+
+	}
+

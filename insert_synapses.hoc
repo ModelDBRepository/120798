@@ -1,0 +1,26 @@
+// insert_synapses.hoc
+// inserts EPSP generating synaptic mechanism into spine
+// 1 g_syn mechanism is put in each of three spine heads and also
+// another one is placed on dend1[879] for figure 5B
+
+objref syn[4]
+
+spine_cntr=0
+forsec "spine_head" {
+  syn[spine_cntr]=new syn_g(0.5)
+  syn[spine_cntr].onset=20
+  syn[spine_cntr].tau0=0.2
+  syn[spine_cntr].tau1=2.0
+  // gmax value is modifed depending on the figure
+  syn[spine_cntr].gmax=500e-6  // or 0, or 0.051
+  spine_cntr=spine_cntr+1
+}
+
+// this dendr. EPSP is only used for Fig 5B
+// otherwise gmax set to 0
+dend1[879] syn[3] = new syn_g(0.5)
+syn[3].onset = 5
+syn[3].tau0 = 0.2
+syn[3].tau1 = 2
+syn[3].gmax = 0.0105  // or 0
+syn[3].e = 0

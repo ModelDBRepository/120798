@@ -1,0 +1,8 @@
+// iclamp_supfig2.ses
+// after 20 msec inject -.1 amp for 130 ms
+objref ic
+dend1[13] ic=new IClamp(0.5)
+ic.del=20
+ic.dur=130
+ic.amp=-.1
+tstop=250

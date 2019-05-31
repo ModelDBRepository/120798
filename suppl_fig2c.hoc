@@ -1,0 +1,93 @@
+// suppl_fig2c.hoc
+// 
+
+// The below two functions assume the spine neck length is 1 um
+
+// Rn() returns the resistance of these spine necks in ohms
+func Rn() { // pass the diameter $1 (assume the length is 1 um)
+  return 10^4*105*1/(($1/2)^2*PI)
+}
+
+// diam_of_Rn() returns the spine neck diameter that provides a particular resistance
+func diam_of_Rn() { //  pass the neck resistance in ohms and return neck diam
+  return 2*sqrt((1e4*105)/(PI*$1))
+}
+// record the voltages at the soma, 80 um from the soma on a dend, and
+// on a spine attached to that same dend compartment
+
+objref soma_v_vec, dend_v_vec, spine_v_vec,t_vec
+soma_v_vec = new Vector()
+dend_v_vec = new Vector()
+spine_v_vec = new Vector()
+t_vec = new Vector()
+
+soma_v_vec.record(&dend1[13].v(0.5))
+dend_v_vec.record(&dend1[881].v(0.5))
+spine_v_vec.record(&spine_head[0].v(0.5))
+
+t_vec.record(&t)
+
+objref spine_dend_ratio, NeckResistance
+spine_dend_ratio = new Vector()
+NeckResistance = new Vector()
+run_num=1
+total_num=15
+min_diam = 0.004
+max_diam = 0.4
+spine_diam = min_diam
+// linear scale: for (spine_diam=min_diam;spine_diam<max_diam;spine_diam+=(max_diam-min_diam)/total_num) {
+
+// logarithmic scale
+emin=log10(min_diam)
+emax=log10(max_diam)
+objref supl_fig_2c
+
+proc suppl_fig2c() {
+  cvode.active(1) // turn on the variable step method for signif. increase in run speed
+  print "Using variable time step method"
+  tstop=250
+  IClamp[0].amp=-.1
+  for i=0,3 { // spines turned off
+    syn[i].gmax = 0 // on for suppl. fig. 2c
+  }
+  run_num = 1
+  for (iter=emin; iter<=emax; iter+=(emax-emin)/(total_num-1)) {
+    spine_diam = 10^(iter)
+
+    print "run :",run_num,"/",total_num, ", spine_diam = ",spine_diam,", Rneck = ",Rn(spine_diam)/1e6, " MOhm"
+    run_num += 1
+    spine_neck[0] diam(0.5)=spine_diam
+
+    init()
+    run()
+
+    for i=0, t_vec.size()-1 {
+      if (t_vec.x[i]<150) {
+        last_dend=dend_v_vec.x[i]
+        last_spine=spine_v_vec.x[i]
+        last_soma=soma_v_vec.x[i]
+        }
+    }
+
+    spine_dend_ratio.append(100-((v_init-last_dend)-(v_init-last_spine))/(v_init-last_dend)*100)
+    NeckResistance.append(Rn(spine_diam))
+    // keep reinitializing otherwise get to big
+    soma_v_vec = new Vector()
+    dend_v_vec = new Vector()
+    spine_v_vec = new Vector()
+    t_vec = new Vector()
+
+    soma_v_vec.record(&dend1[13].v(0.5))
+    dend_v_vec.record(&dend1[881].v(0.5))
+    spine_v_vec.record(&spine_head[0].v(0.5))
+    t_vec.record(&t)
+  }
+
+  objref supl_fig_2c
+  supl_fig_2c = new Graph()
+
+  spine_dend_ratio.mark(supl_fig_2c, NeckResistance.c.log10(),"o")
+  g.exec_menu("View = plot")
+  supl_fig_2c.exec_menu("View = plot")
+  supl_fig_2c.label(.4,.3,"Supl. Fig. 2 c")
+}

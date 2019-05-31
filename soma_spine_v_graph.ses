@@ -1,0 +1,30 @@
+objref g
+objectvar save_window_, rvp_
+objectvar scene_vector_[4]
+objectvar ocbox_, ocbox_list_, scene_, scene_list_
+{ocbox_list_ = new List()  scene_list_ = new List()}
+{
+g = new Graph(0)
+save_window_ = g
+save_window_.size(0,250,-80,-75)
+scene_vector_[3] = save_window_
+{save_window_.view(0, -80, 250, 5, 716, 151, 300.48, 200.32)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addexpr("dend1[881].v(0.5)", 1, 7, 0.8, 0.9, 2)
+save_window_.addexpr("spine_head[0].v(0.5)", 3, 1, 0.8, 0.9, 2)
+save_window_.label(0.284345, 0.915335, "Fig 5b/Suppl. Fig 2 b", 2, 1, 0, 0, 3)
+}
+{
+save_window_ = new Graph(0)
+save_window_.size(0,250,-80,-75)
+scene_vector_[2] = save_window_
+{save_window_.view(0, -80, 250, 5, 590, 566, 300.48, 200.32)}
+graphList[0].append(save_window_)
+save_window_.save_name("graphList[0].")
+save_window_.addexpr("v(.5)", 1, 2, 0.8, 0.9, 2)
+save_window_.addexpr("dend1[881].v(0.5)", 1, 1, 0.8, 0.9, 2)
+save_window_.label(0.367412, 0.924921, "Suppl. Fig. 2 a", 2, 1, 0, 0, 1)
+}
+objectvar scene_vector_[1]
+{doNotify()}
